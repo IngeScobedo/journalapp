@@ -32,8 +32,9 @@ export const useForm = (initialForm = {}, formValidators = {}) => {
     for (const formField of Object.keys(formValidators)) {
       const [fn, errorMessage = 'Campo requerido'] = formValidators[formField]
       formCheckedValues[`${formField}Valid`] = fn(formState[formField]) ? null : errorMessage
-      setFormValidators(formCheckedValues)
     }
+    console.log(formCheckedValues)
+    setFormValidators(formCheckedValues)
   }
 
   return {

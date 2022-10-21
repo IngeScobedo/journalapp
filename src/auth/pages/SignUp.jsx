@@ -1,30 +1,40 @@
 import { Link as RouterLink } from 'react-router-dom'
-import { Button, Grid, Link, TextField } from '@mui/material'
+import { Alert, Button, Grid, Link, TextField } from '@mui/material'
 import { AuthLayout } from '../layout/AuthLayout'
 import { useForm } from '../../hooks/useForm'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { startCreatingUserWithEmail } from '../../store/auth/thunks'
+import { useMemo, useState } from 'react'
 
 const registerFormData = {
-  name: '',
+  displayName: '',
   email: '',
   password: ''
 }
 
 const registerFormValidators = {
-  email: [(value) => value.includes('@'), 'El correo electronico no es válido'],
+  email: [(value) => value.includes('@'), 'El correo electronico debe de contener @'],
   password: [(value) => value.length >= 6, 'La contraseña debe tener al menos 6 letras'],
-  name: [(value) => value.length >= 1, 'Este no es un nombre válido']
+  displayName: [(value) => value.length >= 1, 'Este no es un nombre válido']
 }
 
 export const SignUp = () => {
   const dispatch = useDispatch()
+  const { status, errorMessage } = useSelector(state => state.auth)
+  const [formSubmitted, setFormSubmitted] = useState(false)
 
-  const { name, email, password, nameValid, emailValid, passwordValid, onInputChange, isFormValid, formState } = useForm(registerFormData, registerFormValidators)
+  const isCheckingAuth = useMemo(() => status === 'checking', [status])
+
+  const {
+    displayName, email, password, displayNameValid,
+    emailValid, passwordValid, onInputChange,
+    isFormValid, formState
+  } = useForm(registerFormData, registerFormValidators)
 
   const handleSubmit = (event) => {
     event.preventDefault()
     if (!isFormValid) return
+    setFormSubmitted(true)
     dispatch(startCreatingUserWithEmail(formState))
   }
   return (
@@ -34,14 +44,15 @@ export const SignUp = () => {
           <Grid item xs={12} sx={{ mt: 2 }}>
             <TextField
               label='Full Name'
-              name='name'
-              value={name}
+              name='displayName'
+              value={displayName}
               onChange={onInputChange}
               type='text'
               placeholder='Your name'
               fullWidth
               required
-              error={!!nameValid}
+              error={!!displayNameValid && formSubmitted}
+              helperText={displayNameValid}
             />
           </Grid>
 
@@ -55,7 +66,8 @@ export const SignUp = () => {
               placeholder='correo@gmail.com'
               fullWidth
               required
-              error={!!emailValid}
+              error={!!emailValid && formSubmitted}
+              helperText={emailValid}
             />
           </Grid>
 
@@ -69,7 +81,8 @@ export const SignUp = () => {
               placeholder='your password'
               fullWidth
               required
-              error={!!passwordValid}
+              error={!!passwordValid && formSubmitted}
+              helperText={passwordValid}
             />
           </Grid>
 
@@ -78,8 +91,13 @@ export const SignUp = () => {
             spacing={2}
             sx={{ mb: 2, mt: 1 }}
           >
+            <Grid display={errorMessage ? '' : 'none'} item sx={12} sm={12}>
+              <Alert severity='error'>
+                {errorMessage}
+              </Alert>
+            </Grid>
             <Grid item sx={12} sm={12}>
-              <Button type='submit' variant='contained' fullWidth>
+              <Button disable={isCheckingAuth} type='submit' variant='contained' fullWidth>
                 Crear cuenta
               </Button>
             </Grid>

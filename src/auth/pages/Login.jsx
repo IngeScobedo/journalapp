@@ -1,31 +1,39 @@
+import { useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link as RouterLink } from 'react-router-dom'
 import { Google } from '@mui/icons-material'
-import { Button, Grid, Link, TextField, Typography } from '@mui/material'
+import { Alert, Button, Grid, Link, TextField, Typography } from '@mui/material'
 import { AuthLayout } from '../layout/AuthLayout'
 import { useForm } from '../../hooks/useForm'
-import { checkingAuth, startGoogleSignIn } from '../../store/auth/thunks'
-import { useMemo } from 'react'
+import { startEmailAndPasswordSignIn, startGoogleSignIn } from '../../store/auth/thunks'
+
+const loginFormData = {
+  userEmail: '',
+  password: ''
+}
+
+const loginFormValidators = {
+  userEmail: [(value) => value.includes('@'), 'El correo electronico debe de contener @'],
+  password: [(value) => value.length >= 6, 'La contraseña debe tener al menos 6 letras']
+}
 
 export const Login = () => {
   const dispatch = useDispatch()
-  const { status } = useSelector(state => state.auth)
+  const { status, errorMessage } = useSelector(state => state.auth)
+  const [formSubmitted, setFormSubmitted] = useState(false)
 
-  const { email, password, onInputChange } = useForm({
-    email: 'alan@alan.com',
-    password: '123456'
-  })
+  const { userEmail, password, onInputChange, isFormValid, formState, userEmailValid, passwordValid } = useForm(loginFormData, loginFormValidators)
 
   const isAuthenticating = useMemo(() => status === 'checking', [status])
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    console.log('login', email, password)
-    dispatch(checkingAuth())
+    setFormSubmitted(true)
+    if (!isFormValid) return
+    dispatch(startEmailAndPasswordSignIn(formState))
   }
 
   const handleGoogleSignin = () => {
-    console.log('GOOGLE SIGN-IN')
     dispatch(startGoogleSignIn())
   }
   return (
@@ -36,9 +44,11 @@ export const Login = () => {
             <TextField
               label='Email'
               type='email'
-              name='email'
+              name='userEmail'
               onChange={onInputChange}
-              value={email}
+              value={userEmail}
+              error={!!userEmailValid && formSubmitted}
+              helperText={userEmailValid}
               placeholder='correo@gmail.com'
               fullWidth
             />
@@ -51,6 +61,8 @@ export const Login = () => {
               placeholder='your password'
               name='password'
               value={password}
+              error={!!passwordValid && formSubmitted}
+              helperText={passwordValid}
               onChange={onInputChange}
               fullWidth
             />
@@ -61,6 +73,11 @@ export const Login = () => {
             spacing={2}
             sx={{ mb: 2, mt: 1 }}
           >
+            <Grid display={errorMessage ? '' : 'none'} item sx={12} sm={12}>
+              <Alert severity='error'>
+                {errorMessage}
+              </Alert>
+            </Grid>
             <Grid item sx={12} sm={6}>
               <Button disabled={isAuthenticating} type='submit' variant='contained' fullWidth>
                 Login
