@@ -1,4 +1,4 @@
-import { registerUserWithEmail, signInWithEmail, signInWithGoogle } from '../../firebase/providers'
+import { logoutFirebase, registerUserWithEmail, signInWithEmail, signInWithGoogle } from '../../firebase/providers'
 import { checkingCredentials, login, logout } from './AuthSlice'
 
 export const startGoogleSignIn = () => {
@@ -27,5 +27,17 @@ export const startEmailAndPasswordSignIn = ({ userEmail, password }) => {
     console.log({ ok, uid, photoURL, displayName, email, errorMessage })
     if (!ok) return dispath(logout({ errorMessage }))
     dispath(login({ uid, displayName, email, photoURL }))
+  }
+}
+
+export const startHandleLogoutFirebase = () => {
+  return async (dispatch) => {
+    try {
+      await logoutFirebase()
+      dispatch(logout({ errorMessage: null }))
+    } catch (error) {
+      console.error('Error al cerrar sesión')
+      dispatch(logout({ errorMessage: 'Error al cerrar sesión' }))
+    }
   }
 }
