@@ -12,6 +12,7 @@ import { startSavingNote, startUploadingFiles } from '../../store/journal/thunks
 import { setActiveNote } from '../../store/journal/JournalSlice'
 
 import { ImageGallery } from '../components'
+import { startDeleteNote } from '../../store/auth/thunks'
 
 export const Note = () => {
   const inputFileRef = useRef(null)
@@ -36,6 +37,10 @@ export const Note = () => {
     const { files } = target
     if (files === 0) return
     dispatch(startUploadingFiles(target.files))
+  }
+
+  const handleDeleteNote = () => {
+    dispatch(startDeleteNote())
   }
 
   useEffect(() => {
@@ -108,6 +113,18 @@ export const Note = () => {
           onChange={onInputChange}
           minRows={5}
         />
+      </Grid>
+      <Grid
+        container
+        justifyContent='end'
+      >
+        <Button
+          onClick={handleDeleteNote}
+          sx={{ mt: 2 }}
+          color='error'
+        >
+          Borrar
+        </Button>
       </Grid>
       <ImageGallery images={note.images} />
     </Grid>
