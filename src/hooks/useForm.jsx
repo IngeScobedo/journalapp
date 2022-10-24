@@ -5,12 +5,10 @@ export const useForm = (initialForm = {}, formValidators = {}) => {
   const [formValidatorsConfig, setFormValidators] = useState({})
 
   useEffect(() => {
-    console.log('render validators')
     createValidators()
   }, [formState])
 
   useEffect(() => {
-    console.log('initialForm change')
     setFormState(initialForm)
   }, [initialForm])
 

@@ -1,15 +1,22 @@
-import { SaveOutlined } from '@mui/icons-material'
-import { Button, Grid, TextField, Typography } from '@mui/material'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+
+import Swal from 'sweetalert2'
+import 'sweetalert2/dist/sweetalert2.css'
+
+import { SaveOutlined, UploadOutlined } from '@mui/icons-material'
+import { Button, Grid, IconButton, TextField, Typography } from '@mui/material'
+
 import { useForm } from '../../hooks/useForm'
+import { startSavingNote, startUploadingFiles } from '../../store/journal/thunks'
 import { setActiveNote } from '../../store/journal/JournalSlice'
-import { startSavingNote } from '../../store/journal/thunks'
+
 import { ImageGallery } from '../components'
 
 export const Note = () => {
+  const inputFileRef = useRef(null)
   const dispatch = useDispatch()
-  const { active: note } = useSelector(state => state.journal)
+  const { active: note, messageSaved, isSaving } = useSelector(state => state.journal)
 
   const {
     title,
@@ -25,9 +32,21 @@ export const Note = () => {
     dispatch(startSavingNote())
   }
 
+  const handleInputFileChange = ({ target }) => {
+    const { files } = target
+    if (files === 0) return
+    dispatch(startUploadingFiles(target.files))
+  }
+
   useEffect(() => {
     dispatch(setActiveNote(formState))
   }, [formState])
+
+  useEffect(() => {
+    if (messageSaved.length > 0) {
+      Swal.fire('Nota actualizada', messageSaved, 'success')
+    }
+  }, [messageSaved])
 
   return (
     <Grid
@@ -43,7 +62,25 @@ export const Note = () => {
         </Typography>
       </Grid>
       <Grid item>
-        <Button onClick={handleSaveNote} color='primary'>
+        <input
+          ref={inputFileRef}
+          type='file'
+          multiple
+          onChange={handleInputFileChange}
+          hidden
+        />
+        <IconButton
+          onClick={() => inputFileRef.current.click()}
+          disabled={isSaving}
+          color='primary'
+        >
+          <UploadOutlined />
+        </IconButton>
+        <Button
+          onClick={handleSaveNote}
+          disabled={isSaving}
+          color='primary'
+        >
           <SaveOutlined sx={{ fontSize: 30, mr: 1 }} />
           Guardar
         </Button>
@@ -72,7 +109,7 @@ export const Note = () => {
           minRows={5}
         />
       </Grid>
-      <ImageGallery />
+      <ImageGallery images={note.images} />
     </Grid>
   )
 }

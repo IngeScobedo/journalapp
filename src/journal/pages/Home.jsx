@@ -9,9 +9,11 @@ import { NothingSelected } from '../views/NothingSelected'
 export const Home = () => {
   const dispatch = useDispatch()
   const { active, isSaving } = useSelector(state => state.journal)
+
   const handleNewNote = () => {
     dispatch(startNewNote())
   }
+
   return (
     <JournalLayout>
       {

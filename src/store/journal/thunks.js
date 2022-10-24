@@ -7,13 +7,16 @@ import {
   FirebaseDB
 } from '../../firebase/config'
 import {
+  fileUpload,
   loadNotes
 } from '../../helpers'
 import {
   addNewEmptyNote,
+  noteUpdated,
   savingNewNote,
   setActiveNote,
-  setNotes
+  setNotes,
+  setPhotosToActiveNote
 } from './JournalSlice'
 
 export const startNewNote = () => {
@@ -33,9 +36,7 @@ export const startNewNote = () => {
 
     dispatch(addNewEmptyNote(newNote))
     dispatch(setActiveNote(newNote))
-    dispatch(savingNewNote({
-      isSaving: true
-    }))
+    dispatch(savingNewNote())
   }
 }
 
@@ -47,26 +48,42 @@ export const startLoadingNotes = () => {
     if (!uid) throw new Error('EL USUARIO NO EXISTE')
     const loadedNotes = await loadNotes(uid)
     dispatch(setNotes(loadedNotes))
-    // dispatch(setActiveNote(loadedNotes[0]))
-    // dispatch(savingNewNote(true))
   }
 }
 
 export const startSavingNote = () => {
   return async (dispatch, getState) => {
-    const {
-      active: note
-    } = getState().journal
-    const {
-      uid
-    } = getState().auth
-    const noteToFirestore = {
-      ...note
+    try {
+      dispatch(savingNewNote())
+      const {
+        active: note
+      } = getState().journal
+      const {
+        uid
+      } = getState().auth
+      const noteToFirestore = {
+        ...note
+      }
+      delete noteToFirestore.id
+      const docRef = doc(FirebaseDB, `${uid}/journal/notes/${note.id}`)
+      await setDoc(docRef, noteToFirestore, { merge: true })
+      dispatch(noteUpdated(note))
+    } catch (error) {
+
     }
-    delete noteToFirestore.id
-    const docRef = doc(FirebaseDB, `${uid}/journal/notes/${note.id}`)
-    await setDoc(docRef, noteToFirestore, { merge: true })
-    dispatch(savingNewNote(false))
-    dispatch(startLoadingNotes())
+  }
+}
+
+export const startUploadingFiles = (files = []) => {
+  return async (dispatch) => {
+    dispatch(savingNewNote())
+
+    const fileUploadPromises = []
+    for (const file of files) {
+      fileUploadPromises.push(fileUpload(file))
+    }
+
+    const photosUrls = await Promise.all(fileUploadPromises)
+    dispatch(setPhotosToActiveNote(photosUrls))
   }
 }
