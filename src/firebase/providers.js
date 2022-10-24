@@ -49,7 +49,6 @@ export const registerUserWithEmail = async ({ email, password, displayName }) =>
 export const signInWithEmail = async ({ userEmail, password }) => {
   try {
     const response = await signInWithEmailAndPassword(FirebaseAuth, userEmail, password)
-    console.log('response', response)
     const { uid, photoURL, email, displayName } = response.user
     return {
       ok: true,
