@@ -25,8 +25,8 @@ export const startNewNote = () => {
       uid
     } = getState().auth
     const newNote = {
-      title: 'nueva nota con titulo',
-      body: 'cuerpo de la nota',
+      title: 'Nueva nota',
+      body: '',
       date: new Date().getTime(),
       images: []
     }
